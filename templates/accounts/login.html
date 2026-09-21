@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Logowanie - ReviewRadar{% endblock %}
+
+{% block content %}
+  <div class="form-box">
+    <h1>Zaloguj się</h1>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <ul class="errorlist">
+              {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+      {% if form.non_field_errors %}
+        <ul class="errorlist">
+          {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <button type="submit">Zaloguj się</button>
+    </form>
+    <p class="form-footer">
+      Nie masz konta? <a href="{% url 'accounts:register' %}">Zarejestruj się</a><br>
+      <a href="{% url 'accounts:password_reset' %}">Zapomniałeś hasła?</a>
+    </p>
+  </div>
+{% endblock %}

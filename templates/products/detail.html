@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.brand }} {{ product.model_name }} - ReviewRadar{% endblock %}
+
+{% block extra_head %}
+  {% if needs_refresh %}<meta http-equiv="refresh" content="5">{% endif %}
+{% endblock %}
+
+{% block content %}
+  <a class="back-link" href="{% url 'products:search' %}">← Powrót do wyszukiwania</a>
+  <div class="product-header">
+    <h1>{{ product.brand }} {{ product.model_name }}</h1>
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'products:toggle_watchlist' product.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-inline">
+          {% if is_watched %}★ Obserwowane{% else %}☆ Obserwuj{% endif %}
+        </button>
+      </form>
+    {% else %}
+      <a class="btn-inline" href="{% url 'accounts:login' %}?next={{ request.path }}">Zaloguj się, aby obserwować</a>
+    {% endif %}
+  </div>
+  <p class="muted">{{ product.category.name }} · {{ product.name }}</p>
+  {% if review_count %}
+    <p class="rating-summary">★ {{ avg_rating|floatformat:1 }} / 5 ({{ review_count }} ocen{{ review_count|pluralize:",y" }} użytkowników)</p>
+  {% endif %}
+
+  {% if fetching_sources %}
+    <div class="fetching-banner">
+      Pobieranie najnowszych opinii w toku ({{ fetching_sources|join:", " }})
+      — strona odświeży się automatycznie za kilka sekund.
+    </div>
+  {% endif %}
+  {% if ai_overview_pending %}
+    <div class="fetching-banner">
+      Claude generuje odpowiedź — strona odświeży się automatycznie za kilka sekund.
+    </div>
+  {% endif %}
+
+  <div class="summary-grid">
+    <div class="summary-box pros-box">
+      <h3>Zalety</h3>
+      <p>{{ product.pros_summary|default:"Brak danych." }}</p>
+      {% if user.is_authenticated and product.pros_summary %}
+        <form class="flag-form" method="post" action="{% url 'products:flag_summary' product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="target" value="pros">
+          <button type="submit" class="btn-inline">Zgłoś nietrafne podsumowanie</button>
+        </form>
+      {% endif %}
+    </div>
+    <div class="summary-box cons-box">
+      <h3>Wady</h3>
+      <p>{{ product.cons_summary|default:"Brak danych." }}</p>
+      {% if user.is_authenticated and product.cons_summary %}
+        <form class="flag-form" method="post" action="{% url 'products:flag_summary' product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="target" value="cons">
+          <button type="submit" class="btn-inline">Zgłoś nietrafne podsumowanie</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if product.specification %}
+    <h3>Specyfikacja</h3>
+    <table class="spec-table">
+      {% for key, value in product.specification.items %}
+        <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+
+  <div class="tabs-wrap">
+    <input type="radio" name="detail-tabs" id="tab-youtube" class="tab-input" checked>
+    <input type="radio" name="detail-tabs" id="tab-google-places" class="tab-input">
+    <input type="radio" name="detail-tabs" id="tab-user-reviews" class="tab-input">
+    <input type="radio" name="detail-tabs" id="tab-claude" class="tab-input">
+
+    <div class="tab-labels">
+      <label for="tab-youtube" class="tab-label">Komentarze z YouTube ({{ youtube_reviews|length }})</label>
+      <label for="tab-google-places" class="tab-label">Opinie z Google Places ({{ google_places_reviews|length }})</label>
+      <label for="tab-user-reviews" class="tab-label">Oceny użytkowników ({{ review_count }})</label>
+      <label for="tab-claude" class="tab-label">Zapytanie do Claude</label>
+    </div>
+
+    <div class="tab-panel panel-youtube">
+      {% for r in youtube_reviews %}
+        <div class="review sentiment-{{ r.sentiment|default:'neutral' }}">
+          <div class="review-meta">
+            <span class="source-badge">{{ r.source.name }}</span>
+            {% if r.author %}<span>· {{ r.author }}</span>{% endif %}
+            {% if r.score %}<span>· {{ r.score }} pkt</span>{% endif %}
+            {% if r.sentiment %}<span class="badge">{{ r.get_sentiment_display }}</span>{% endif %}
+          </div>
+          <p>{{ r.summary|default:r.raw_text|truncatewords:60 }}</p>
+        </div>
+      {% empty %}
+        <p class="muted">Brak komentarzy z YouTube dla tego produktu.</p>
+      {% endfor %}
+    </div>
+
+    <div class="tab-panel panel-google-places">
+      {% for r in google_places_reviews %}
+        <div class="review sentiment-{{ r.sentiment|default:'neutral' }}">
+          <div class="review-meta">
+            <span class="source-badge">{{ r.source.name }}</span>
+            {% if r.author %}<span>· {{ r.author }}</span>{% endif %}
+            {% if r.score %}<span>· {{ r.score }} pkt</span>{% endif %}
+            {% if r.sentiment %}<span class="badge">{{ r.get_sentiment_display }}</span>{% endif %}
+          </div>
+          <p>{{ r.summary|default:r.raw_text|truncatewords:60 }}</p>
+        </div>
+      {% empty %}
+        <p class="muted">Brak opinii z Google Places dla tego produktu.</p>
+      {% endfor %}
+    </div>
+
+    <div class="tab-panel panel-user-reviews">
+      {% if user.is_authenticated %}
+        <form class="user-review-form" method="post" action="{% url 'products:submit_review' product.pk %}">
+          {% csrf_token %}
+          <label for="{{ review_form.rating.id_for_label }}">Twoja ocena</label>
+          {{ review_form.rating }}
+          <label for="{{ review_form.comment.id_for_label }}">Komentarz (opcjonalnie)</label>
+          {{ review_form.comment }}
+          <button type="submit" class="btn-inline">{% if my_review %}Zaktualizuj ocenę{% else %}Dodaj ocenę{% endif %}</button>
+        </form>
+      {% else %}
+        <p class="muted">
+          <a href="{% url 'accounts:login' %}?next={{ request.path }}">Zaloguj się</a>, aby ocenić ten produkt.
+        </p>
+      {% endif %}
+      {% for r in user_reviews %}
+        <div class="review">
+          <div class="review-meta">
+            <span class="source-badge">{{ r.user.username }}</span>
+            <span>· ★ {{ r.rating }}/5</span>
+            <span>· {{ r.created_at|date:"d.m.Y" }}</span>
+          </div>
+          {% if r.comment %}<p>{{ r.comment }}</p>{% endif %}
+        </div>
+      {% empty %}
+        <p class="muted">Brak ocen użytkowników dla tego produktu.</p>
+      {% endfor %}
+    </div>
+
+    <div class="tab-panel panel-claude">
+      {% if ai_overview_pending %}
+        <p class="muted">Claude jeszcze nie odpowiedział — poczekaj chwilę.</p>
+      {% else %}
+        <div class="review">
+          <div class="review-meta"><span class="source-badge">Claude</span></div>
+          <p>{{ product.ai_overview|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

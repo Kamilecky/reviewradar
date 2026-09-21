@@ -1,0 +1,34 @@
+C:\Odzyskane\PythonVSFolder\.vscode\My_Django_Projects\myvenv\Lib\site-packages\coreapi\utils.py:5: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+ 
+ -------------- celery@KamilPC v5.5.3 (immunity)
+--- ***** ----- 
+-- ******* ---- Windows-11-10.0.26200-SP0 2026-09-02 11:47:33
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         reviewradar:0x20d31354ad0
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 16 (solo)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . analysis.tasks.analyze_product_reviews
+  . analysis.tasks.generate_product_ai_overview
+  . scrapers.tasks.fetch_crawlbase_reddit_post
+  . scrapers.tasks.fetch_reddit_reviews
+  . scrapers.tasks.fetch_registry_reviews
+  . scrapers.tasks.refresh_recent_products
+
+[2026-09-02 11:47:35,685: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2026-09-02 11:47:37,733: INFO/MainProcess] mingle: searching for neighbors
+[2026-09-02 11:47:44,866: INFO/MainProcess] mingle: all alone
+[2026-09-02 11:47:55,108: INFO/MainProcess] celery@KamilPC ready.
+[2026-09-02 11:48:58,131: INFO/MainProcess] Task analysis.tasks.generate_product_ai_overview[71eb4928-4f86-4ec7-85dc-31a53b65d146] received
+[2026-09-02 11:48:59,097: INFO/MainProcess] HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+[2026-09-02 11:48:59,098: WARNING/MainProcess] Product overview query failed: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CeeQ2YWKsJJbGMHEyeVmn'}
+[2026-09-02 11:49:01,143: INFO/MainProcess] Task analysis.tasks.generate_product_ai_overview[71eb4928-4f86-4ec7-85dc-31a53b65d146] succeeded in 3.011222999999518s: None

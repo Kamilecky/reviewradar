@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Moje obserwowane produkty - ReviewRadar{% endblock %}
+
+{% block content %}
+  <h1>Moje obserwowane produkty</h1>
+
+  {% if products %}
+    <div class="grid">
+      {% include "products/_product_grid.html" %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>Nie obserwujesz jeszcze żadnych produktów.</p>
+      <p class="muted">Wejdź na stronę produktu i kliknij „Obserwuj”, żeby dodać go tutaj.</p>
+    </div>
+  {% endif %}
+{% endblock %}

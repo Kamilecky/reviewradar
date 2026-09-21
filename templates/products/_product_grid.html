@@ -1,0 +1,9 @@
+{% for p in products %}
+  <a class="card" href="{% url 'products:detail' p.pk %}">
+    <div class="card-category">{{ p.category.name }}</div>
+    <h3>{{ p.brand }} {{ p.model_name }}</h3>
+    <p class="card-name">{{ p.name }}</p>
+    {% if p.pros_summary %}<p class="pros">✓ {{ p.pros_summary|truncatewords:16 }}</p>{% endif %}
+    {% if p.cons_summary %}<p class="cons">✗ {{ p.cons_summary|truncatewords:16 }}</p>{% endif %}
+  </a>
+{% endfor %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Wyszukiwarka produktów - ReviewRadar{% endblock %}
+
+{% block content %}
+  {% if query or selected_category %}
+    <p class="result-info">Znaleziono {{ result_count }} produkt{{ result_count|pluralize:",y" }} dla zapytania{% if query %} „{{ query }}”{% endif %}</p>
+  {% endif %}
+
+  {% if auto_created_product %}
+    <div class="fetching-banner">
+      Nie znaleziono „{{ query }}” w katalogu — dodano nowy wpis i uruchomiono
+      pobieranie opinii z YouTube/Google Places. Wejdź w produkt za chwilę,
+      żeby je zobaczyć.
+    </div>
+  {% elif cost_path_limited %}
+    <div class="fetching-banner">
+      Osiągnięto tymczasowy limit dodawania nowych produktów. Wyniki poniżej
+      pochodzą z istniejącego katalogu — spróbuj ponownie później.
+    </div>
+  {% endif %}
+
+  {% if products %}
+    <div class="grid">
+      {% include "products/_product_grid.html" %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      {% if query and not selected_category and not selected_main_category %}
+        <p>Brak produktów spełniających kryteria wyszukiwania.</p>
+        <p class="muted">Wybierz kategorię (główną wystarczy), żeby wyszukiwarka
+          mogła automatycznie dodać ten produkt i pobrać dla niego opinie
+          z YouTube/Google Places.</p>
+      {% elif query or selected_category %}
+        <p>Brak produktów spełniających kryteria wyszukiwania.</p>
+      {% else %}
+        <p>Baza produktów jest pusta.</p>
+        <p class="muted">Dodaj produkty w <a href="/admin/products/product/add/">panelu admina</a>, żeby zacząć je wyszukiwać.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

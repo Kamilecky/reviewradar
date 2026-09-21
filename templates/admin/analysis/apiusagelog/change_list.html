@@ -1,0 +1,25 @@
+{% extends "admin/change_list.html" %}
+
+{% block date_hierarchy %}
+{{ block.super }}
+<div class="module" style="margin-bottom: 16px;">
+  <h2>Zużycie API — ostatnie 24h</h2>
+  <table>
+    <thead><tr><th>Provider</th><th>Suma</th></tr></thead>
+    <tbody>
+      {% for row in usage_summary_24h %}
+        <tr><td>{{ row.provider }}</td><td>{{ row.total }} {{ row.unit_label }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <h2>Zużycie API — ostatnie 7 dni</h2>
+  <table>
+    <thead><tr><th>Provider</th><th>Suma</th></tr></thead>
+    <tbody>
+      {% for row in usage_summary_7d %}
+        <tr><td>{{ row.provider }}</td><td>{{ row.total }} {{ row.unit_label }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

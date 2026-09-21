@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ReviewRadar{% endblock %}</title>
+{% block extra_head %}{% endblock %}
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2e37;
+    --text: #e8eaed;
+    --muted: #8b909c;
+    --accent: #4f8cff;
+    --positive: #34c77b;
+    --negative: #ef5b5b;
+    --neutral: #8b909c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  a { color: inherit; }
+  header {
+    padding: 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  header a.logo {
+    font-size: 24px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  form.search-form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 680px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .search-form input[type="text"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 15px;
+  }
+  .search-form select {
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+  }
+  .search-form button {
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .search-form button:hover { opacity: 0.9; }
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  .muted { color: var(--muted); }
+  .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: var(--accent);
+  }
+  .result-info { color: var(--muted); margin-bottom: 20px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    display: block;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-category {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .card h3 { margin: 0 0 4px; font-size: 17px; }
+  .card-name { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .card p.pros, .card p.cons {
+    font-size: 13px;
+    margin: 4px 0;
+    line-height: 1.4;
+  }
+  .card p.pros { color: var(--positive); }
+  .card p.cons { color: var(--negative); }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .summary-box {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .summary-box h3 { margin-top: 0; }
+  .pros-box h3 { color: var(--positive); }
+  .cons-box h3 { color: var(--negative); }
+  .spec-table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+  .spec-table th, .spec-table td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-table th { color: var(--muted); font-weight: 500; width: 220px; }
+  .review {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    margin-bottom: 10px;
+    border-left: 3px solid var(--neutral);
+  }
+  .review.sentiment-positive { border-left-color: var(--positive); }
+  .review.sentiment-negative { border-left-color: var(--negative); }
+  .review-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .badge {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+  }
+  .source-badge {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(79,140,255,0.15);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .fetching-banner {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: rgba(79,140,255,0.08);
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  @media (max-width: 560px) {
+    .summary-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CSS-only tabs (no JS): the radio inputs must stay siblings-before
+     the labels/panels in source order for the ~ combinator below. */
+  .tab-input { position: absolute; opacity: 0; pointer-events: none; }
+  .tab-labels {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .tab-label {
+    padding: 8px 14px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    user-select: none;
+  }
+  .tab-panel { display: none; }
+  #tab-youtube:checked ~ .tab-labels label[for="tab-youtube"],
+  #tab-google-places:checked ~ .tab-labels label[for="tab-google-places"],
+  #tab-user-reviews:checked ~ .tab-labels label[for="tab-user-reviews"],
+  #tab-claude:checked ~ .tab-labels label[for="tab-claude"] {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  #tab-youtube:checked ~ .panel-youtube,
+  #tab-google-places:checked ~ .panel-google-places,
+  #tab-user-reviews:checked ~ .panel-user-reviews,
+  #tab-claude:checked ~ .panel-claude {
+    display: block;
+  }
+
+  /* Accounts: header nav, flash messages, plain forms, small inline buttons */
+  .header-nav {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .header-nav a { text-decoration: none; color: var(--accent); }
+  .header-nav form { margin: 0; }
+  .header-nav .link-button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    font-family: inherit;
+  }
+  .messages { list-style: none; padding: 0; margin: 0 0 16px; }
+  .messages li {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+  }
+  .messages li.success { border-color: var(--positive); color: var(--positive); }
+  .messages li.error { border-color: var(--negative); color: var(--negative); }
+  .messages li.info { border-color: var(--accent); color: var(--accent); }
+  .form-box {
+    max-width: 380px;
+    margin: 40px auto;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .form-box h1 { margin-top: 0; font-size: 20px; }
+  .form-box .field { margin-bottom: 14px; }
+  .form-box label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+  .form-box input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .form-box .errorlist { color: var(--negative); font-size: 12px; padding-left: 0; list-style: none; margin: 4px 0 0; }
+  .form-box button {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .form-box .form-footer { margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .btn-inline {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .btn-inline:hover { border-color: var(--accent); }
+  .product-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .rating-summary { color: var(--muted); font-size: 14px; }
+  .flag-form { margin-top: 8px; display: inline-block; }
+  .user-review-form { margin-bottom: 20px; }
+  .user-review-form select, .user-review-form textarea {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="{% url 'products:search' %}">ReviewRadar</a>
+  <nav class="header-nav">
+    {% if user.is_authenticated %}
+      <a href="{% url 'accounts:profile' %}">{{ user.username }}</a>
+      <a href="{% url 'accounts:watchlist' %}">Moje obserwowane</a>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Wyloguj</button>
+      </form>
+    {% else %}
+      <a href="{% url 'accounts:login' %}">Zaloguj się</a>
+      <a href="{% url 'accounts:register' %}">Zarejestruj się</a>
+    {% endif %}
+  </nav>
+  {% block search_form %}
+  <form class="search-form" method="get" action="{% url 'products:search' %}">
+    <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Szukaj produktu, marki, modelu...">
+    {# Honeypot: real users never see or fill this in; some bots do. See products/web_views.py::product_search. #}
+    <input type="text" name="website" value="" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" aria-hidden="true">
+    <select name="main_category">
+      <option value="">Wszystkie kategorie główne</option>
+      {% for value, label in main_categories %}
+        <option value="{{ value }}" {% if value == selected_main_category %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="category">
+      <option value="">Wszystkie kategorie</option>
+      {% regroup categories by get_main_category_display as category_groups %}
+      {% for group in category_groups %}
+        <optgroup label="{{ group.grouper }}">
+          {% for c in group.list %}
+            <option value="{{ c.slug }}" {% if c.slug == selected_category %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+    </select>
+    <button type="submit">Szukaj</button>
+  </form>
+  {% endblock %}
+</header>
+<main>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
